@@ -1,9 +1,11 @@
 # Browser events recording & playback
 
+A thought experiment exploring what it takes to capture user interactions in a browser context and replay them at a later time in order to evaluate UX.
+
 <!-- MarkdownTOC autolink="true" bracket="round" -->
 
-- [Demo](#demo)
 - [Introduction](#introduction)
+- [Demo](#demo)
 - [Background](#background)
     - [Testing](#testing)
     - [Network & Bandwidth](#network--bandwidth)
@@ -17,16 +19,6 @@
 <!-- /MarkdownTOC -->
 
 ---
-
-## Demo
-
-A simplistic implementation of the functionality described under the [Event Recorder & Dispatcher](#event-recorder--dispatcher) section is provided along with this document.
-
-To run the demo clone this repository, `cd demo/`, serve `index.html` from a static server (eg. `python -m SimpleHTTPServer 5559`), and follow the instructions.
-
-It should look like this: 
-
->   ![](./demo.png)
 
 ## Introduction
 
@@ -50,6 +42,16 @@ Whenever a webpage author wants to replay a recorded session the player would:
 - select the session to replay
 - load the webpage snapshots associated with the selected session
 - start event playback against the snapshots
+
+## Demo
+
+A simplistic implementation of the functionality described under the [Event Recorder & Dispatcher](#event-recorder--dispatcher) section is provided along with this document.
+
+To run the demo clone this repository, `cd demo/`, serve `index.html` from a static server (eg. `python -m SimpleHTTPServer 5559`), and follow the instructions.
+
+It should look like this: 
+
+>   ![](./demo.png)
 
 ## Background
 
