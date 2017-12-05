@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>event recorder</title>
+</head>
+<style type="text/css">
+    #tracked {
+        width: 650px;
+        height: 300px;
+        border: 2px solid #000;
+    }
+    #menu {
+        list-style: none;
+        margin: 10px 0;
+        padding: 10px;
+        background-color: #eee;
+    }
+    #menu li {
+        display: inline-block;
+    }
+</style>
+<body>
+    <h1>Usage</h1>
+    <ol>
+        <li>Click on <strong>Record</strong> button to start recording</li>
+        <li>Interact with the page inside the iframe. Click, scroll, etc.</li>
+        <li>Click on <strong>Play</strong> to replay your actions</li>
+    </ol>
+    <ol id="menu">
+        <li><button id="record" onclick="record()">&#9210; Record</button></li>
+        <li><button id="play" onclick="play()">&#9654; Play</button></li>
+        <li><button id="pause" onclick="pause()">&#9208; Pause</button></li>
+        <li><button id="restart" onclick="restart()">&#128472; Restart</button></li>
+    </ol>
+    <iframe id="tracked" src="tracked.html" frameborder="0"></iframe>
+    <script type="text/javascript" src="demo.bundle.js"></script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "name": "browser-event-recorder",
+  "version": "1.0.0",
+  "description": "> If you wanted to create a simple version of the Hotjar recordings feature, how would you do this? Explain how you would do this in as much detail as possible.",
+  "main": "webpack.config.js",
+  "scripts": {
+    "build": "webpack --config webpack.config.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "rudasn",
+  "license": "ISC",
+  "devDependencies": {
+    "webpack": "^3.10.0"
+  }
+}
