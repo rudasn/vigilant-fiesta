@@ -24,7 +24,7 @@
  *      Can be a DOM `node`, `document`, or `window` (default).
  */
 class EventRecorder {
-    constructor(events, { extract, context=window }) {
+    constructor(events, { extract=e => e, context=window }) {
         this.events = events
         this.capture = this.capture.bind(this)
         this.queue = []

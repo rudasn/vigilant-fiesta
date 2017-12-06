@@ -18,10 +18,10 @@
  *      an event. Accents the extracted `event` and the provided `context`.
  * @param {object} [props.context] - The context of the event recorder.
  *      Listeners will be attached on this object.
- *      Can be a DOM `node`, `document`, or `window` (default).
+ *      Can be a DOM `node`, `document`, or `window`.
  */
 class EventDispatcher {
-    constructor({ trigger, context=window }) {
+    constructor({ trigger, context }) {
         this.props = {
             trigger,
             context,
@@ -59,15 +59,14 @@ class EventDispatcher {
         setTimeout(() => {
             if (this.isPaused) { return }
 
-            requestAnimationFrame(() => {
+            raf(() => {
                 try {
                     trigger(next, context)
+                    this.dispatch(actions, frame + 1)
                 } catch(e) {
                     console.error(`Error triggering event "${ next.type }"`)
-                    console.error(e)
+                    throw e
                 }
-
-                this.dispatch(actions, ++frame)
             })
         }, timeout)
     }
@@ -98,5 +97,7 @@ class EventDispatcher {
         return this.play(this.currentActions, 0)
     }
 }
+
+const raf = global.requestAnimationFrame || (cb => cb())
 
 export default EventDispatcher
