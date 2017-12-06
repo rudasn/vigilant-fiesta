@@ -70,7 +70,7 @@
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__src_dispatcher__ = __webpack_require__(1);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__src_recorder__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__src_recorder__ = __webpack_require__(3);
 
 
 
@@ -194,8 +194,30 @@ window.restart = () => {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+/* WEBPACK VAR INJECTION */(function(global) {/**
+ * EventDispatcher
+ *
+ * The purpose of the event dispatcher is to apply a series of actions
+ * captured from the EventRecorder on the specified context.
+ *
+ * @example Dispatch a series of `mousemove` and `click` actions.
+ *  const player = new EventDispatcher({
+ *      trigger: (event, context) => {
+ *          console.log(`Triggered "${ event.type }"`)
+ *      }
+ *  })
+ *  player.play(recorder.queue)
+ *
+ * @constructor
+ * @param {object} props
+ * @param {function} props.trigger - the function to call when triggering
+ *      an event. Accents the extracted `event` and the provided `context`.
+ * @param {object} [props.context] - The context of the event recorder.
+ *      Listeners will be attached on this object.
+ *      Can be a DOM `node`, `document`, or `window`.
+ */
 class EventDispatcher {
-    constructor({ trigger, context=window }) {
+    constructor({ trigger, context }) {
         this.props = {
             trigger,
             context,
@@ -204,6 +226,14 @@ class EventDispatcher {
         this.currentFrame = 0
         this.currentActions = []
     }
+    /**
+     * Dispatch the event at `frame` from the `actions` array.
+     * Provides a time delay considering the time delta between the
+     * previous event in the `actions` and the current event.
+     *
+     * @param {object[]} - An array of captured events
+     * @param {number} [frame] - The index of the event we want to dispatch
+     */
     dispatch(actions=this.currentActions, frame=this.currentFrame) {
         const { trigger, context } = this.props
         const { isPaused } = this
@@ -223,42 +253,112 @@ class EventDispatcher {
         console.log(`dispatching #${ frame } (${ next.type }) in ${ timeout }ms`)
 
         setTimeout(() => {
-            requestAnimationFrame(() => {
+            if (this.isPaused) { return }
+
+            raf(() => {
                 try {
                     trigger(next, context)
+                    this.dispatch(actions, frame + 1)
                 } catch(e) {
                     console.error(`Error triggering event "${ next.type }"`)
-                    console.error(e)
+                    throw e
                 }
-
-                this.dispatch(actions, ++frame)
             })
         }, timeout)
     }
+    /**
+     * Apply a set of events.
+     *
+     * @param {object[]} - An array of captured events
+     * @param {number} [frame] - The index of the event we want to begin with
+     */
     play(actions, frame) {
         this.isPaused = false
         this.dispatch(actions, frame)
         console.log('play', frame)
+        return this
     }
+    /**
+     * Stop the playback of events.
+     */
     stop() {
         this.isPaused = true
         console.log('stop')
+        return this
     }
+    /**
+     * Restart playback of events, starting from the first one.
+     */
     restart() {
-        this.play(this.currentActions, 0)
+        return this.play(this.currentActions, 0)
     }
 }
 
+const raf = global.requestAnimationFrame || (cb => cb())
+
 /* harmony default export */ __webpack_exports__["a"] = (EventDispatcher);
 
+/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(2)))
 
 /***/ }),
 /* 2 */
+/***/ (function(module, exports) {
+
+var g;
+
+// This works in non-strict mode
+g = (function() {
+	return this;
+})();
+
+try {
+	// This works if eval is allowed (see CSP)
+	g = g || Function("return this")() || (1,eval)("this");
+} catch(e) {
+	// This works if the window reference is available
+	if(typeof window === "object")
+		g = window;
+}
+
+// g can still be undefined, but nothing to do about it...
+// We return undefined, instead of nothing here, so it's
+// easier to handle this case. if(!global) { ...}
+
+module.exports = g;
+
+
+/***/ }),
+/* 3 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+/**
+ * EventRecorder
+ *
+ * The purpose of the recorder is to add event listeners
+ * and extract useful information from captured events.
+ *
+ * @example Capture `mousemove` and `click` events from the current window.
+ *  const recorder = new EventRecorder([ 'mousemove', 'click' ], {
+ *      // extract the type of the captured event.
+ *      extract: (event, context) => ({ type: event.type }),
+ *      context: window,
+ *  })
+ *  recorder.start()
+ *  recorder.queue // => holds the captured events
+ *
+ * @constructor
+ * @param {string[]} events - An array of event types to listen to.
+ * @param {object} props
+ * @param {function} props.extract - The function to extract data & meta-data
+ *      from the captured events. Accepts the captured `event` and the
+ *      provided `context` and optionally returns an `object`.
+ * @param {object} [props.context] - The context of the event recorder.
+ *      Listeners will be attached on this object.
+ *      Can be a DOM `node`, `document`, or `window` (default).
+ */
 class EventRecorder {
-    constructor(events, { extract, context=window }) {
+    constructor(events, { extract=e => e, context=window }) {
         this.events = events
         this.capture = this.capture.bind(this)
         this.queue = []
@@ -267,22 +367,35 @@ class EventRecorder {
             context,
         }
     }
+    /**
+     * Add a listener for each event on the context provided on initialization.
+     */
     start() {
         const { events, capture } = this
         const { context } = this.props
 
         events.map(name =>
-            context.addEventListener(name, capture)
+            context.addEventListener(name, capture, true)
         )
+        return this
     }
+    /**
+     * Remove all event listeners.
+     */
     stop() {
         const { events, capture } = this
         const { context } = this.props
 
         events.map(name =>
-            context.removeEventListener(name, capture)
+            context.removeEventListener(name, capture, true)
         )
+        return this
     }
+    /**
+     * Callback for event listeners.
+     * If the `extract` function provided on initialization returns a non-falsey
+     * value the value is appended on the instance's `queue` property.
+     */
     capture(event) {
         const { extract, context } = this.props
         const { queue } = this
@@ -290,7 +403,7 @@ class EventRecorder {
         const action = extract(event, context)
 
         if (action) {
-            console.log('capture', action.type, action)
+            console.log('captured', action.type, action)
             queue.push(action)
         }
     }
